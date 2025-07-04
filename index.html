@@ -26,9 +26,18 @@
   <h1>10만원 나눠 갖기</h1>
 
   <div id="intro">
+    <img src="2000.png" alt="Ultimatum Game Illustration" style="max-width: 30%; height: auto; margin-bottom: 1em; display: block;">
     <p>당신은 협상 거래 테이블에 앉아 총 30회의 협상을 진행하게 됩니다.<br>
-    제안 12회, 수락/거절 18회로 구성됩니다.<br>
-    감정 및 전략 반응을 분석합니다.</p>
+      매 거래마다 당신은 처음 보는 사람과 10만원을 나눠 가져야 합니다. <br>
+      누군가는 너그럽고, 누군가는 욕심이 많습니다. 어떤 거래는 공정하고, 어떤 거래는 기분이 상할 수도 있죠. <br>
+      <br>
+      이 협상의 규칙은 한 사람은 비율을 제시하고, 다른 사람이 반드시 수락해야 계약이 성사된다는 것입니다. <br>
+      즉, 상대가 당신에게 10만원 중 8만원을 갖고 2만원을 제시했을 때, <br>
+      당신이 수락하면 계약은 성사되어 당신은 2만원, 상대는 8만원을 가집니다. <br>
+      하지만 2만원이 너무 적다고 생각하여 거절한다면, 둘 다 돈을 받지 못합니다. <br>
+      <br>
+      이어지는 게임에서 당신은 비율을 제시할 수도 있고, 상대의 제안을 선택할 수도 있습니다. <br>
+      당신은 어떤 선택을 하시겠습니까?</p>
     <button onclick="startGame()">시작</button>
   </div>
 
@@ -222,9 +231,13 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
-      .then(res => res.ok ? res.text() : Promise.reject(res.statusText))
-      .then(msg => alert("Netlify 서버에 저장 완료! ✅"))
-      .catch(err => alert("저장 실패: " + err));
+      .then(res => res.text())
+      .then(msg => {
+        alert("저장 성공: " + msg);
+      })
+      .catch(err => {
+        alert("저장 실패: " + err);
+      });
     }
   </script>
 </body>
