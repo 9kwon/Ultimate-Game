@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Ultimatum Game</title>
+  <style>
+    body { font-family: Arial; padding: 2em; max-width: 1000px; margin: auto; font-size: 1.25em; line-height: 1.8; }
+    .hidden { display: none; }
+    button {
+      margin: 0.3em;
+      padding: 0.7em 1.5em;
+      font-size: 1em;
+      min-width: 130px;
+    }
+    #offerText { font-size: 1.4em; }
+    #result { margin-top: 2em; font-weight: bold; font-size: 1.3em; }
+    input[type=number], input[type=text] {
+      width: 250px;
+      font-size: 1.2em;
+      padding: 0.5em;
+      margin-top: 0.3em;
+    }
+  </style>
+</head>
+<body>
+  <h1>10만원 나눠 갖기</h1>
+
+  <div id="intro">
+    <p>당신은 협상 거래 테이블에 앉아 총 30회의 협상을 진행하게 됩니다.<br>
+    제안 12회, 수락/거절 18회로 구성됩니다.<br>
+    감정 및 전략 반응을 분석합니다.</p>
+    <button onclick="startGame()">시작</button>
+  </div>
+
+  <div id="proposer" class="hidden">
+    <p>당신이 상대에게 제안합니다.</p>
+    <label>0~100,000원 중에서 얼마를 상대에게 제시하겠습니까?</label><br>
+    <input type="number" id="offerInput" min="0" max="100000" step="5000" value="50000">
+    <br><button onclick="submitOffer()">제안하기</button>
+  </div>
+
+  <div id="responder" class="hidden">
+    <p id="offerText"></p>
+    <button onclick="respond('accept')">수락</button>
+    <button onclick="respond('reject')">거절</button>
+  </div>
+
+  <div id="result" class="hidden"></div>
+
+  <div id="emotionSection" class="hidden">
+    <p>지금 기분은 어땠나요?</p>
+    <div id="emotionButtons">
+      <button onclick="submitEmotion('기쁨')">😊 기쁨</button>
+      <button onclick="submitEmotion('다행스러움')">😌 다행스러움</button>
+      <button onclick="submitEmotion('무감정/잘 모르겠음')">😐 무감정/잘 모르겠음</button>
+      <button onclick="submitEmotion('실망')">☹️ 실망</button>
+      <button onclick="submitEmotion('화남')">😠 화남</button>
+    </div>
+  </div>
+
+  <div id="end" class="hidden">
+    <p>참여해 주셔서 감사합니다!</p>
+    <input type="text" id="userEmail" placeholder="이메일 ID (예: example)" /><br>
+    <input type="text" id="userPhone" placeholder="전화번호 뒷자리 (예: 1234)" /><br>
+    <button onclick="submitToNetlify()">결과 저장</button>
+  </div>
+
+  <script>
+    const totalAmount = 100000;
+    const roles = Array(12).fill('proposer').concat(Array(18).fill('responder'));
+    shuffle(roles);
+
+    const rounds = roles.map(role => {
+      if (role === 'proposer') return { role, aiType: randomAI() };
+      const frameType = Math.random() < 0.5 ? 'direct' : 'indirect';
+      if (frameType === 'direct') {
+        const share = [10000, 20000, 30000, 40000, 50000][Math.floor(Math.random() * 5)];
+        return { role, type: 'direct', share, frameType };
+      } else {
+        const proposerPct = [60, 70, 80, 90][Math.floor(Math.random() * 4)];
+        return { role, type: 'indirect', proposerPct, frameType };
+      }
+    });
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function randomAI() {
+      return ['무난이', '엄격이'][Math.floor(Math.random() * 2)];
+    }
+
+    let current = 0;
+    let data = [];
+    let trialStart;
+    let currentTrialData = null;
+    let aiMemory = {};
+
+    function startGame() {
+      document.getElementById('intro').classList.add('hidden');
+      nextRound();
+    }
+
+    function nextRound() {
+      if (current >= rounds.length) return showEnd();
+
+      const round = rounds[current];
+      trialStart = Date.now();
+
+      if (round.role === 'proposer') {
+        document.getElementById('proposer').classList.remove('hidden');
+      } else {
+        document.getElementById('responder').classList.remove('hidden');
+        const offerText = document.getElementById('offerText');
+        if (round.type === 'direct') {
+          const proposerShare = totalAmount - round.share;
+          offerText.textContent = `상대가 당신에게 ${round.share.toLocaleString()}원을 제시했습니다.`;
+          round.offer = round.share;
+        } else {
+          const proposerShare = round.proposerPct / 100 * totalAmount;
+          const responderShare = totalAmount - proposerShare;
+          offerText.textContent = `상대가 자신이 ${proposerShare.toLocaleString()}원을 갖겠다고 제시했습니다.`;
+          round.offer = responderShare;
+        }
+      }
+    }
+
+    function submitOffer() {
+      const offer = parseInt(document.getElementById('offerInput').value);
+      const round = rounds[current];
+      const ai = round.aiType;
+      if (!aiMemory[ai]) aiMemory[ai] = [];
+      aiMemory[ai].push(offer);
+
+      let strategy = "첫 제안";
+      let risk = "중간";
+      const prev = aiMemory[ai].slice(-2)[0];
+      if (prev !== undefined) {
+        const diff = Math.abs(offer - prev);
+        strategy = diff >= 10000 ? "탐색" : "활용";
+      }
+      if (offer >= 50000) risk = "매우 낮음";
+      else if (offer >= 40000) risk = "낮음";
+      else if (offer >= 20000) risk = "중간";
+      else risk = "높음";
+
+      const acceptProb = ai === '무난이'
+        ? (offer >= 40000 ? 1 : offer >= 20000 ? 0.6 : 0.2)
+        : (offer >= 50000 ? 1 : offer >= 30000 ? 0.5 : 0.1);
+      const accepted = Math.random() < acceptProb;
+
+      const proposerReward = accepted ? totalAmount - offer : 0;
+      const responderReward = accepted ? offer : 0;
+
+      document.getElementById('proposer').classList.add('hidden');
+      document.getElementById('result').textContent = accepted
+        ? `상대(${ai})가 당신의 제안을 수락했습니다. 당신: ${proposerReward.toLocaleString()} / 상대: ${responderReward.toLocaleString()}`
+        : `상대(${ai})가 당신의 제안을 거절했습니다. 둘 다 돈을 받지 못합니다.`;
+
+      document.getElementById('result').classList.remove('hidden');
+      document.getElementById('emotionSection').classList.remove('hidden');
+
+      const rt = ((Date.now() - trialStart) / 1000).toFixed(2);
+      currentTrialData = {
+        trial: current + 1, role: 'proposer', offer, aiType: ai,
+        accepted, proposerReward, responderReward, rt, strategy, riskAversion: risk
+      };
+    }
+
+    function respond(choice) {
+      const round = rounds[current];
+      const rt = ((Date.now() - trialStart) / 1000).toFixed(2);
+      const accepted = choice === 'accept';
+      const responderReward = accepted ? round.offer : 0;
+      const proposerReward = accepted ? totalAmount - round.offer : 0;
+
+      document.getElementById('responder').classList.add('hidden');
+      document.getElementById('result').textContent = accepted
+        ? `거래가 성사되었습니다. 당신: ${responderReward.toLocaleString()} / 상대: ${proposerReward.toLocaleString()}`
+        : `거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다.`;
+      document.getElementById('result').classList.remove('hidden');
+      document.getElementById('emotionSection').classList.remove('hidden');
+
+      currentTrialData = {
+        trial: current + 1, role: 'responder', offer: round.offer,
+        response: choice, rt, responderReward, proposerReward,
+        frameType: round.frameType
+      };
+    }
+
+    function submitEmotion(emotion) {
+      currentTrialData.emotion = emotion;
+      data.push(currentTrialData);
+      currentTrialData = null;
+      current++;
+      document.getElementById('emotionSection').classList.add('hidden');
+      document.getElementById('result').classList.add('hidden');
+      nextRound();
+    }
+
+    function showEnd() {
+      document.getElementById('end').classList.remove('hidden');
+    }
+
+    function submitToNetlify() {
+      const email = document.getElementById('userEmail').value.trim();
+      const phone = document.getElementById('userPhone').value.trim();
+      if (!email || !phone) {
+        alert("이메일과 전화번호 뒷자리를 입력해 주세요.");
+        return;
+      }
+      data.forEach(d => {
+        d.emailID = email;
+        d.phoneSuffix = phone;
+      });
+
+      fetch('/.netlify/functions/save-results', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.ok ? res.text() : Promise.reject(res.statusText))
+      .then(msg => alert("Netlify 서버에 저장 완료! ✅"))
+      .catch(err => alert("저장 실패: " + err));
+    }
+  </script>
+</body>
+</html>
