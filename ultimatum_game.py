@@ -229,7 +229,7 @@ def show_done():
         "user_id": "참여자 ID",
         "date": "날짜 및 시간"
     }
-    translated = [{"항목": col_name_map.get(k, k), "값(0~1)": v} for k, v in traits.items()]
+    translated = [{"항목": col_name_map.get(k, k), "값(0~1)": round(v, 4)} for k, v in traits.items()]
     traits_df = pd.DataFrame(translated)
 
     st.subheader("행동 특성 분석 결과")
