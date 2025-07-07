@@ -71,7 +71,6 @@ if "initialized" not in st.session_state:
 # ----------- Pages ------------
 def show_intro():
     st.title("10만원 나눠 갖기")
-    col1, col2 = st.columns([2, 1])
     st.image("2000.png", width=300) #, use_container_width=True)
     st.markdown("""
     당신은 협상 거래 테이블에 앉아 총 30회의 협상을 진행하게 됩니다.
