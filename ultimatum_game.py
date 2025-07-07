@@ -34,7 +34,7 @@ def generate_rounds():
     rounds = []
     for role in roles:
         if role == "proposer":
-            rounds.append({"role": role, "ai_type": random.choice(["무난이", "엄격이"])}).
+            rounds.append({"role": role, "ai_type": random.choice(["무난이", "엄격이"])})
         else:
             frame_type = random.choice(["direct", "indirect"])
             if frame_type == "direct":
