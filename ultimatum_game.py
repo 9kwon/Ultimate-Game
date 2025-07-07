@@ -104,7 +104,7 @@ def show_intro():
         else:
             st.session_state.user_id = f"{name}_{phone}"
             st.session_state.page = "game"
-            st.experimental_rerun()
+            st.rerun()
 
 
 def show_proposer(trial):
