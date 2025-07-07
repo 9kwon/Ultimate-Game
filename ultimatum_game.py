@@ -218,8 +218,23 @@ def show_done():
     traits["user_id"] = st.session_state.user_id
     traits["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     save_to_gsheet(traits)
+
+    col_name_map = {
+        "risk_averse_ratio": "위험 회피 경향",
+        "loss_aversion": "손실 회피 경향",
+        "punishment_rate": "처벌 성향",
+        "ignore_benefit": "이익 무관심",
+        "explore": "탐색 성향",
+        "exploit": "이용 성향",
+        "user_id": "참여자 ID",
+        "date": "날짜 및 시간"
+    }
+    translated = [{"항목": col_name_map.get(k, k), "값(0~1)": v} for k, v in traits.items()]
+    traits_df = pd.DataFrame(translated)
+
     st.subheader("행동 특성 분석 결과")
-    st.json(traits)
+    st.dataframe(traits_df, use_container_width=True)
+    #st.json(traits)
 
 # ----------- Main Renderer ------------
 if st.session_state.page == "intro":
