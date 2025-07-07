@@ -217,16 +217,31 @@ def show_emotion():
 def show_done():
     st.success("모든 라운드가 종료되었습니다. 참여해 주셔서 감사합니다!")
     st.write(f"총 참여 trial 수: {len(st.session_state.data)}")
+
     df = pd.DataFrame(st.session_state.data)
-    # 행동 특성 계산
     traits = compute_behavioral_traits(df)
+
+    # 영문 컬럼 유지한 상태로 저장
     traits["user_id"] = st.session_state.user_id
     traits["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    # Google Sheet 저장
     save_to_gsheet(traits)
-    # 출력
+
+    # 사용자에게 보여줄 때는 한글로
+    col_name_map = {
+        "risk_aversion": "위험 회피 경향",
+        "loss_aversion": "손실 회피 경향",
+        "punishment": "처벌 성향",
+        "ignore_benefit": "이득 무관심",
+        "explore": "탐색 성향",
+        "exploit": "활용 성향",
+        "user_id": "참여자 ID",
+        "date": "날짜 및 시간"
+    }
+
+    translated = [{"항목": col_name_map.get(k, k), "값": v} for k, v in traits.items()]
+    traits_df = pd.DataFrame(translated)
+
     st.subheader("행동 특성 분석 결과")
-    traits_df = pd.DataFrame([traits])  
     st.dataframe(traits_df, use_container_width=True)
 
 
