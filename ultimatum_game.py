@@ -34,7 +34,7 @@ def generate_rounds():
     rounds = []
     for role in roles:
         if role == "proposer":
-            rounds.append({"role": role, "ai_type": random.choice(["무난이", "엄격이"])})
+            rounds.append({"role": role, "ai_type": random.choice(["무난이", "엄격이"])}).
         else:
             frame_type = random.choice(["direct", "indirect"])
             if frame_type == "direct":
@@ -72,7 +72,7 @@ def show_intro():
     응답자가 되어 수락할지 거절할지 선택할 수 있습니다.  
 
     **당신은 어떤 선택을 하시겠습니까?**
-    
+
     &nbsp;  
     &nbsp;  
     """, unsafe_allow_html=True)
@@ -142,8 +142,11 @@ def show_responder(trial):
         st.write(f"상대가 자신이 {proposer_share:,}원을 갖겠다고 제시했습니다.")
 
     col1, col2 = st.columns(2)
-    if col1.button("수락") or col2.button("거절"):
-        choice = "accept" if col1.button("수락") else "reject"
+    accept_clicked = col1.button("수락")
+    reject_clicked = col2.button("거절")
+
+    if accept_clicked or reject_clicked:
+        choice = "accept" if accept_clicked else "reject"
         accepted = choice == "accept"
         responder_reward = offer if accepted else 0
         proposer_reward = total_amount - offer if accepted else 0
@@ -185,8 +188,9 @@ def show_end():
     try:
         df = pd.DataFrame(st.session_state.data)
         sheet.append_rows(df.values.tolist())
-    except:
-        st.warning("저장 실패")
+    except Exception as e:
+        st.warning("⚠️ Google Sheet에 저장하지 못했습니다. secrets 설정을 확인하세요.")
+        st.exception(e)
     st.dataframe(st.session_state.data)
 
 # ---------- Main Renderer ----------
