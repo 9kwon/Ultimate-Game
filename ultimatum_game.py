@@ -228,12 +228,10 @@ def show_done():
 
     # 사용자에게 보여줄 때는 한글로
     col_name_map = {
-        "risk_aversion_ratio": "위험 회피 경향",
+        "risk_averse_ratio": "위험 회피 경향",
         "loss_aversion": "손실 회피 경향",
-        "punishment_ratio": "처벌 성향",
+        "punishment_rate": "처벌 성향",
         "ignore_benefit": "이득 무관심",
-        "explore_ratio": "탐색 성향",
-        "exploit_ratio": "활용 성향",
         "user_id": "참여자 ID",
         "date": "날짜 및 시간"
     }
