@@ -29,37 +29,23 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ----------- Google Sheets Setup ------------
-def save_to_gsheet(data, sheet_name="raw"):
+def save_to_gsheet(data):
     try:
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         credentials_dict = json.loads(st.secrets["GSHEET_CREDENTIALS"])
         creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
         client = gspread.authorize(creds)
-        book = client.open(st.secrets["GSHEET_NAME"])
 
-        # 열 이름 추출
-        header = list(data.keys())
-        row = list(data.values())
+        sheet = client.open(st.secrets["GSHEET_NAME"]).sheet1
 
-        # 시트 열기 또는 생성
-        try:
-            sheet = book.worksheet(sheet_name)
-        except gspread.exceptions.WorksheetNotFound:
-            sheet = book.add_worksheet(title=sheet_name, rows="1000", cols="50")
-            sheet.append_row(header)
+        # 헤더가 없다면 생성
+        if sheet.row_count == 0 or not sheet.row_values(1):
+            sheet.append_row(list(data.keys()))
 
-        # 헤더 확인 및 추가
-        if not sheet.row_values(1):
-            sheet.append_row(header)
-        elif sheet.row_values(1) != header:
-            # 컬럼이 다르면 기존 시트는 두고 새 시트를 만드는게 안전
-            sheet = book.add_worksheet(title=f"{sheet_name}_{datetime.now().strftime('%H%M%S')}", rows="1000", cols="50")
-            sheet.append_row(header)
-
-        sheet.append_row(row)
-
+        sheet.append_row(list(data.values()))
     except Exception as e:
         st.warning(f"저장 실패: {e}")
+
 
 
 # ----------- Behavior Analysis ------------
@@ -218,9 +204,9 @@ def show_emotion():
         if st.button(emo):
             result = st.session_state.last_result
             result["emotion"] = emo
-            save_to_gsheet(result, sheet_name="raw")
-            
+            result["type"] = "trial"  
             st.session_state.data.append(result)
+            save_to_gsheet(result)   
             st.session_state.trial_num += 1
             if st.session_state.trial_num >= len(st.session_state.rounds):
                 st.session_state.page = "done"
@@ -229,6 +215,7 @@ def show_emotion():
                 st.session_state.start_time = time.time()
             st.rerun()
 
+
 def show_done():
     st.success("모든 라운드가 종료되었습니다. 참여해 주셔서 감사합니다!")
     st.write(f"총 참여 trial 수: {len(st.session_state.data)}")
@@ -236,7 +223,8 @@ def show_done():
     traits = compute_behavioral_traits(df)
     traits["user_id"] = st.session_state.user_id
     traits["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    save_to_gsheet(traits, sheet_name="traits")
+    traits["type"] = "traits"
+    save_to_gsheet(traits)
 
     col_name_map = {
         "risk_averse_ratio": "위험 회피 경향",
