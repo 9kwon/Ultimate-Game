@@ -15,7 +15,7 @@ st.markdown("""
       margin: 0.3em;
       padding: 0.7em 1.5em;
       font-size: 1em;
-      min-width: 130px;
+      min-width: 160px;
     }
     #offerText { font-size: 1.4em; }
     #result { margin-top: 2em; font-weight: bold; font-size: 1.3em; }
@@ -23,6 +23,10 @@ st.markdown("""
       width: 120px;
       font-size: 1.3em;
       padding: 1em;
+    }
+    img {
+      max-width: 30%;
+      height: auto;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -39,7 +43,7 @@ def save_to_gsheet(data):
     
     except Exception as e:
         st.warning("저장 실패")
-
+        st.exception(e)
 
 # ----------- Game Initialization ------------
 if "initialized" not in st.session_state:
@@ -70,7 +74,7 @@ if "initialized" not in st.session_state:
 # ----------- Pages ------------
 def show_intro():
     st.title("10만원 나눠 갖기")
-    st.image("2000.png", width=200, use_container_width=True)
+    st.image("2000.png") #, width=200, use_container_width=True)
     st.markdown("""
     당신은 협상 거래 테이블에 앉아 총 30회의 협상을 진행하게 됩니다.
     
@@ -86,8 +90,10 @@ def show_intro():
     
     **당신은 어떤 선택을 하시겠습니까?**
     
-    <br><br>
-    """)
+    &nbsp;  
+    &nbsp;
+    """, unsafe_allow_html=True)
+    
     st.session_state.consent_given = st.checkbox("연구 참여에 동의합니다.")
 
     name = st.text_input("이름을 입력하세요")
@@ -105,7 +111,7 @@ def show_intro():
 
 def show_proposer():
     rounds = st.session_state.rounds[st.session_state.trial_num]
-    st.write(f"### 제안자 역할 - 라운드 {st.session_state.trial_num + 1}/30")
+    st.write(f"### 당신은 상대에게 얼마나 제안하시겠습니까?  - 라운드 {st.session_state.trial_num + 1}/30")
     offer = st.slider("상대에게 제안할 금액 (원)", 0, 100000, 50000, 5000)
     if st.button("제안하기"):
         ai = rounds["ai"]
@@ -136,7 +142,7 @@ def show_proposer():
 
 def show_responder():
     rounds = st.session_state.rounds[st.session_state.trial_num]
-    st.write(f"### 응답자 역할 - 라운드 {st.session_state.trial_num + 1}/30")
+    st.write(f"### 상대의 제안에 응답해 주세요  - 라운드 {st.session_state.trial_num + 1}/30")
     if rounds["frame"] == "direct":
         st.markdown(f"상대가 당신에게 **{rounds['offer']:,}원**을 제안했습니다.")
     else:
@@ -187,7 +193,7 @@ def show_emotion():
 def show_done():
     st.success("모든 라운드가 종료되었습니다. 참여해 주셔서 감사합니다!")
     st.write(f"총 참여 trial 수: {len(st.session_state.data)}")
-    st.download_button("내 결과 다운로드 (JSON)", json.dumps(st.session_state.data, indent=2), file_name="ultimatum_results.json")
+#    st.download_button("내 결과 다운로드 (JSON)", json.dumps(st.session_state.data, indent=2), file_name="ultimatum_results.json")
 
 # ----------- Main Renderer ------------
 if st.session_state.page == "intro":
