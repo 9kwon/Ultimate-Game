@@ -70,7 +70,7 @@ if "initialized" not in st.session_state:
 # ----------- Pages ------------
 def show_intro():
     st.title("10만원 나눠 갖기 게임")
-    st.image("2000.png", width = 200, use_container_width=True)
+    st.image("2000.png", width = 150, use_container_width=True)
     st.markdown("""
     
     당신은 협상 거래 테이블에 앉아 총 30회의 협상을 진행하게 됩니다.
@@ -86,10 +86,8 @@ def show_intro():
     응답자가 되어 수락할지 거절할지 선택할 수 있습니다.
     
     **당신은 어떤 선택을 하시겠습니까?**
-
-
-    
-    """)
+    <br><br>
+    """, unsafe_allow_html=True)
 
 	
 	
