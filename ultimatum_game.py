@@ -225,10 +225,11 @@ def show_done():
     save_to_gsheet(traits)
 
     traits_df = pd.DataFrame([traits])
+
     # explore, exploit 제거
     traits_df = traits_df.drop(columns=["explore", "exploit"], errors="ignore")
 
-    # 사용자에게 보여줄 때는 한글로
+    # 컬럼명 매핑
     col_name_map = {
         "risk_aversion": "위험 회피 경향",
         "loss_aversion": "손실 회피 경향",
@@ -238,11 +239,9 @@ def show_done():
         "date": "날짜 및 시간"
     }
 
-    translated = [{"항목": col_name_map.get(k, k), "값(0~1)": round(v, 4)} for k, v in traits.items()]
-    traits_df = pd.DataFrame(translated)
-
+    # 1열 N행 형태로 보기 좋게 출력
     st.subheader("행동 특성 분석 결과")
-    st.dataframe(traits_df, use_container_width=True)
+    st.dataframe(traits_df.rename(columns=col_name_map).T)
 
 
 # ----------- Main Renderer ------------
