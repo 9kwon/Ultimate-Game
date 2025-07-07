@@ -95,12 +95,13 @@ def show_intro():
         **당신은 어떤 선택을 하시겠습니까?**
         &nbsp;
         """, unsafe_allow_html=True)
+        
     st.session_state.consent_given = st.checkbox("연구 참여에 동의합니다.")
 
     name = st.text_input("이름을 입력하세요")
     phone = st.text_input("전화번호 뒤 4자리를 입력하세요", max_chars=4)
 
-    if st.button("시작하기"):
+    if st.button("게임 시작"):
         if not st.session_state.consent_given:
             st.warning("계속하려면 동의가 필요합니다.")
         elif not name or not phone:
@@ -112,7 +113,7 @@ def show_intro():
 
 def show_proposer():
     rounds = st.session_state.rounds[st.session_state.trial_num]
-    st.write(f"###  당신은 상대에게 얼마나 제안하시겠습니까?  {st.session_state.trial_num + 1}/30")
+    st.write(f"### 당신은 상대에게 얼마를 제안하시겠습니까?  ({st.session_state.trial_num + 1}/30)")
     offer = st.slider("상대에게 제안할 금액 (원)", 0, 100000, 50000, 5000)
     if st.button("제안하기"):
         ai = rounds["ai"]
@@ -171,7 +172,7 @@ def handle_responder_response(trial_data, choice):
 
 def show_responder():
     rounds = st.session_state.rounds[st.session_state.trial_num]
-    st.write(f"### 상대의 제안에 응답해 주세요 {st.session_state.trial_num + 1}/30")
+    st.write(f"### 상대의 제안에 응답해 주세요  ({st.session_state.trial_num + 1}/30)")
     if rounds["frame"] == "direct":
         st.markdown(f"상대가 당신에게 **{rounds['offer']:,}원**을 제안했습니다.")
     else:
@@ -205,6 +206,7 @@ def show_emotion():
 def show_done():
     st.success("모든 라운드가 종료되었습니다. 참여해 주셔서 감사합니다!")
     st.write(f"총 참여 trial 수: {len(st.session_state.data)}")
+  
 
 # ----------- Main Renderer ------------
 if st.session_state.page == "intro":
