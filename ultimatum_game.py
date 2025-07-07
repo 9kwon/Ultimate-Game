@@ -37,7 +37,6 @@ def save_to_gsheet(data):
         client = gspread.authorize(creds)
         sheet = client.open(st.secrets["GSHEET_NAME"]).sheet1
 
-        # Check and add headers if not present
         if sheet.row_count == 0 or not sheet.row_values(1):
             header = list(data.keys())
             sheet.append_row(header)
@@ -45,6 +44,27 @@ def save_to_gsheet(data):
         sheet.append_row(list(data.values()))
     except Exception as e:
         st.warning("저장 실패")
+
+# ----------- Behavior Analysis ------------
+def compute_behavioral_traits(trials_df):
+    proposer_offers = trials_df[trials_df['role'] == 'proposer']['offer']
+    responder_trials = trials_df[trials_df['role'] == 'responder']
+
+    traits = {}
+    traits['exploit_ratio'] = (proposer_offers < 20000).mean()
+    traits['explore_std'] = proposer_offers.std()
+    traits['risk_averse_ratio'] = (proposer_offers >= 50000).mean()
+
+    low_offers = responder_trials[responder_trials['offer'] <= 20000]
+    traits['punishment_rate'] = (low_offers['response'] == 'reject').mean() if not low_offers.empty else None
+
+    mid_offers = responder_trials[(responder_trials['offer'] > 20000) & (responder_trials['offer'] < 50000)]
+    traits['loss_aversion'] = (mid_offers['response'] == 'reject').mean() if not mid_offers.empty else None
+
+    high_offers = responder_trials[responder_trials['offer'] >= 50000]
+    traits['ignore_benefit'] = (high_offers['response'] == 'reject').mean() if not high_offers.empty else None
+
+    return traits
 
 # ----------- Game Initialization ------------
 if "initialized" not in st.session_state:
@@ -55,9 +75,7 @@ if "initialized" not in st.session_state:
     st.session_state.consent_given = False
     st.session_state.user_id = ""
     st.session_state.start_time = None
-    st.session_state.roles = random.sample(
-        ["proposer"] * 14 + ["responder"] * 16, 30
-    )
+    st.session_state.roles = random.sample(["proposer"] * 14 + ["responder"] * 16, 30)
     st.session_state.rounds = []
     for role in st.session_state.roles:
         if role == "proposer":
@@ -66,11 +84,10 @@ if "initialized" not in st.session_state:
             frame = random.choice(["direct", "indirect"])
             if frame == "direct":
                 offer = random.choice([10000, 20000, 30000, 40000, 50000])
-                st.session_state.rounds.append({"role": role, "offer": offer, "frame": frame, "type": "responder"})
             else:
                 proposer_pct = random.choice([60, 70, 80, 90])
                 offer = 100000 - int((proposer_pct / 100) * 100000)
-                st.session_state.rounds.append({"role": role, "offer": offer, "frame": frame, "type": "responder"})
+            st.session_state.rounds.append({"role": role, "offer": offer, "frame": frame, "type": "responder"})
 
 # ----------- Pages ------------
 def show_intro():
@@ -97,7 +114,6 @@ def show_intro():
         """, unsafe_allow_html=True)
 
     st.session_state.consent_given = st.checkbox("연구 참여에 동의합니다.")
-
     name = st.text_input("이름을 입력하세요")
     phone = st.text_input("전화번호 뒤 4자리를 입력하세요", max_chars=4)
 
@@ -118,14 +134,9 @@ def show_proposer():
     if st.button("제시하기"):
         ai = rounds["ai"]
         accepted = offer >= 20000 if ai == "무난이" else offer >= 50000
-
         user_reward = 100000 - offer if accepted else 0
         ai_reward = offer if accepted else 0
-        st.session_state.result = (
-            f"거래가 성사되었습니다. 당신: {user_reward:,}원 / 상대: {ai_reward:,}원"
-            if accepted else
-            "거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다."
-        )
+        st.session_state.result = f"거래가 성사되었습니다. 당신: {user_reward:,}원 / 상대: {ai_reward:,}원" if accepted else "거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다."
         st.session_state.page = "emotion"
         st.session_state.last_result = {
             "trial": st.session_state.trial_num + 1,
@@ -145,13 +156,7 @@ def handle_responder_response(trial_data, choice):
     accepted = choice == "accept"
     responder_reward = trial_data["offer"] if accepted else 0
     proposer_reward = 100000 - responder_reward if accepted else 0
-
-    st.session_state.result = (
-        f"거래가 성사되었습니다. 당신: {responder_reward:,}원 / 상대: {proposer_reward:,}원"
-        if accepted else
-        "거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다."
-    )
-
+    st.session_state.result = f"거래가 성사되었습니다. 당신: {responder_reward:,}원 / 상대: {proposer_reward:,}원" if accepted else "거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다."
     st.session_state.last_result = {
         "trial": st.session_state.trial_num + 1,
         "role": "responder",
@@ -160,11 +165,10 @@ def handle_responder_response(trial_data, choice):
         "rt": round(time.time() - st.session_state.start_time, 2),
         "responder_reward": responder_reward,
         "proposer_reward": proposer_reward,
-        "frame_type": trial_data["frame"],
+        "frame": trial_data["frame"],
         "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "user_id": st.session_state.user_id
     }
-
     st.session_state.page = "emotion"
     st.session_state.start_time = time.time()
     st.rerun()
@@ -187,10 +191,7 @@ def show_responder():
 
 def show_result():
     st.write("### 거래 결과")
-    st.markdown(f"""
-    <div id='result'>{st.session_state.result}</div>
-    <br><br>
-    """, unsafe_allow_html=True)
+    st.markdown(f"<div id='result'>{st.session_state.result}</div><br><br>", unsafe_allow_html=True)
 
 def show_emotion():
     show_result()
@@ -201,7 +202,6 @@ def show_emotion():
             result = st.session_state.last_result
             result["emotion"] = emo
             st.session_state.data.append(result)
-            save_to_gsheet(result)
             st.session_state.trial_num += 1
             if st.session_state.trial_num >= len(st.session_state.rounds):
                 st.session_state.page = "done"
@@ -213,6 +213,13 @@ def show_emotion():
 def show_done():
     st.success("모든 라운드가 종료되었습니다. 참여해 주셔서 감사합니다!")
     st.write(f"총 참여 trial 수: {len(st.session_state.data)}")
+    df = pd.DataFrame(st.session_state.data)
+    traits = compute_behavioral_traits(df)
+    traits["user_id"] = st.session_state.user_id
+    traits["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    save_to_gsheet(traits)
+    st.subheader("행동 특성 분석 결과")
+    st.json(traits)
 
 # ----------- Main Renderer ------------
 if st.session_state.page == "intro":
