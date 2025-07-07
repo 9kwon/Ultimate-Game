@@ -52,7 +52,7 @@ if "initialized" not in st.session_state:
     st.session_state.user_id = ""
     st.session_state.start_time = None
     st.session_state.roles = random.sample(
-        ["proposer"] * 12 + ["responder"] * 18, 30
+        ["proposer"] * 14 + ["responder"] * 16, 30
     )
     st.session_state.rounds = []
     for role in st.session_state.roles:
@@ -70,13 +70,25 @@ if "initialized" not in st.session_state:
 
 # ----------- Pages ------------
 def show_intro():
-    st.title("10만원 나눠 갖기 게임")
-    st.image("2000.png", use_column_width=True)
+    st.title("10만원 나눠 갖기")
+    st.image("2000.png", width=200, use_container_width=True)
     st.markdown("""
-    이 게임은 총 30회의 협상을 포함합니다. 매 거래마다 당신은 처음 보는 사람과 10만원을 나눠 가져야 합니다. 
-    당신은 제안자 또는 응답자가 될 수 있습니다.
+    당신은 협상 거래 테이블에 앉아 총 30회의 협상을 진행하게 됩니다.
+    
+    매 거래마다 당신은 처음 보는 사람과 10만원을 나눠 가져야 하는데, 조건이 있습니다.  
+    한 사람은 비율을 제시하고, 다른 사람이 반드시 수락해야 계약이 성사된다는 것입니다.
+    
+    즉, 상대가 당신에게 10만원 중 8만원을 갖고 2만원을 제시했을 때,  
+    당신이 수락하면 계약은 성사되어 당신은 2만원, 상대는 8만원을 가집니다.  
+    하지만 2만원이 너무 적다고 생각하여 거절한다면, 둘 다 돈을 받지 못합니다.
+    
+    당신은 제안자가 되어 비율이나 금액을 제시할 수도 있고,  
+    응답자가 되어 수락할지 거절할지 선택할 수 있습니다.
+    
+    **당신은 어떤 선택을 하시겠습니까?**
+    <br><br>
     """)
-    st.session_state.consent_given = st.checkbox("🔒 연구 참여에 동의합니다.")
+    st.session_state.consent_given = st.checkbox("연구 참여에 동의합니다.")
 
     name = st.text_input("이름을 입력하세요")
     phone = st.text_input("전화번호 뒤 4자리를 입력하세요", max_chars=4)
