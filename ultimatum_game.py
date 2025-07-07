@@ -37,15 +37,11 @@ def save_to_gsheet(data):
         client = gspread.authorize(creds)
         sheet = client.open(st.secrets["GSHEET_NAME"]).sheet1
 
-        fixed_columns = ["trial", "role", "offer", "accepted", "response", "user_reward", "responder_reward",                   
-                         "proposer_reward", "ai_reward", "ai", "frame_type", "emotion", "rt", "date", "user_id"]
-
         if sheet.row_count == 0 or not sheet.row_values(1):
+            header = list(data.keys())
             sheet.append_row(header)
-            
-        row = [data.get(col, "") for col in fixed_columns]
-        sheet.append_row(row)
-        
+
+        sheet.append_row(list(data.values()))
     except Exception as e:
         st.warning("저장 실패")
 
@@ -217,32 +213,13 @@ def show_emotion():
 def show_done():
     st.success("모든 라운드가 종료되었습니다. 참여해 주셔서 감사합니다!")
     st.write(f"총 참여 trial 수: {len(st.session_state.data)}")
-
     df = pd.DataFrame(st.session_state.data)
     traits = compute_behavioral_traits(df)
     traits["user_id"] = st.session_state.user_id
     traits["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     save_to_gsheet(traits)
-
-    traits_df = pd.DataFrame([traits])
-
-    # explore, exploit 제거
-    traits_df = traits_df.drop(columns=["explore", "exploit"], errors="ignore")
-
-    # 컬럼명 매핑
-    col_name_map = {
-        "risk_aversion": "위험 회피 경향",
-        "loss_aversion": "손실 회피 경향",
-        "punishment": "처벌 성향",
-        "ignore_benefit": "이득 무관심",
-        "user_id": "참여자 ID",
-        "date": "날짜 및 시간"
-    }
-
-    # 1열 N행 형태로 보기 좋게 출력
     st.subheader("행동 특성 분석 결과")
-    st.dataframe(traits_df.rename(columns=col_name_map).T)
-
+    st.json(traits)
 
 # ----------- Main Renderer ------------
 if st.session_state.page == "intro":
