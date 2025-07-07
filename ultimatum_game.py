@@ -136,7 +136,7 @@ def show_proposer():
         accepted = offer >= 20000 if ai == "무난이" else offer >= 50000
         user_reward = 100000 - offer if accepted else 0
         ai_reward = offer if accepted else 0
-        st.session_state.result = f"거래가 성사되었습니다. 당신: {user_reward:,}원 / 상대: {ai_reward:,}원" if accepted else "거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다."
+        st.session_state.result = f"거래가 성사되었습니다. \n당신: {user_reward:,}원 / 상대: {ai_reward:,}원" if accepted else "거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다."
         st.session_state.page = "emotion"
         st.session_state.last_result = {
             "trial": st.session_state.trial_num + 1,
@@ -156,7 +156,7 @@ def handle_responder_response(trial_data, choice):
     accepted = choice == "accept"
     responder_reward = trial_data["offer"] if accepted else 0
     proposer_reward = 100000 - responder_reward if accepted else 0
-    st.session_state.result = f"거래가 성사되었습니다. 당신: {responder_reward:,}원 / 상대: {proposer_reward:,}원" if accepted else "거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다."
+    st.session_state.result = f"거래가 성사되었습니다. \n당신: {responder_reward:,}원 / 상대: {proposer_reward:,}원" if accepted else "거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다."
     st.session_state.last_result = {
         "trial": st.session_state.trial_num + 1,
         "role": "responder",
