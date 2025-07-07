@@ -70,8 +70,9 @@ if "initialized" not in st.session_state:
 # ----------- Pages ------------
 def show_intro():
     st.title("10만원 나눠 갖기 게임")
-    st.image("2000.png", use_container_width=True)
+    st.image("2000.png", width = 400, use_container_width=True)
     st.markdown("""
+    
     당신은 협상 거래 테이블에 앉아 총 30회의 협상을 진행하게 됩니다.
     
     매 거래마다 당신은 처음 보는 사람과 10만원을 나눠 가져야 하는데, 조건이 있습니다.  
@@ -86,6 +87,8 @@ def show_intro():
     
     **당신은 어떤 선택을 하시겠습니까?**
     """)
+
+	
 	
     st.session_state.consent_given = st.checkbox("연구 참여에 동의합니다.")
 
