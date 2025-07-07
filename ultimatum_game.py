@@ -24,11 +24,15 @@ st.markdown("""
       font-size: 1.3em;
       padding: 1em;
     }
-    <div style="text-align: right;">
-    <img src="2000.png" width="300">
-    </div>
     </style>
 """, unsafe_allow_html=True)
+
+st.markdown("""
+<div style="text-align: right;">
+    <img src="2000.png" width="300">
+</div>
+""", unsafe_allow_html=True)
+
 
 # ----------- Google Sheets Setup ------------
 def save_to_gsheet(data):
