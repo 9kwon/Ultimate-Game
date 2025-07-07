@@ -37,11 +37,15 @@ def save_to_gsheet(data):
         client = gspread.authorize(creds)
         sheet = client.open(st.secrets["GSHEET_NAME"]).sheet1
 
-        if sheet.row_count == 0 or not sheet.row_values(1):
-            header = list(data.keys())
-            sheet.append_row(header)
+        fixed_columns = ["trial", "role", "offer", "accepted", "response", "user_reward", "responder_reward",                   
+                         "proposer_reward", "ai_reward", "ai", "frame_type", "emotion", "rt", "date", "user_id"]
 
-        sheet.append_row(list(data.values()))
+        if sheet.row_count == 0 or not sheet.row_values(1):
+            sheet.append_row(header)
+            
+        row = [data.get(col, "") for col in fixed_columns]
+        sheet.append_row(row)
+        
     except Exception as e:
         st.warning("저장 실패")
 
@@ -136,7 +140,7 @@ def show_proposer():
         accepted = offer >= 20000 if ai == "무난이" else offer >= 50000
         user_reward = 100000 - offer if accepted else 0
         ai_reward = offer if accepted else 0
-        st.session_state.result = f"거래가 성사되었습니다. \n당신: {user_reward:,}원 / 상대: {ai_reward:,}원" if accepted else "거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다."
+        st.session_state.result = f"거래가 성사되었습니다. <br>당신: {user_reward:,}원 / 상대: {ai_reward:,}원" if accepted else "거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다."
         st.session_state.page = "emotion"
         st.session_state.last_result = {
             "trial": st.session_state.trial_num + 1,
@@ -156,7 +160,7 @@ def handle_responder_response(trial_data, choice):
     accepted = choice == "accept"
     responder_reward = trial_data["offer"] if accepted else 0
     proposer_reward = 100000 - responder_reward if accepted else 0
-    st.session_state.result = f"거래가 성사되었습니다. \n당신: {responder_reward:,}원 / 상대: {proposer_reward:,}원" if accepted else "거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다."
+    st.session_state.result = f"거래가 성사되었습니다. <br>당신: {responder_reward:,}원 / 상대: {proposer_reward:,}원" if accepted else "거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다."
     st.session_state.last_result = {
         "trial": st.session_state.trial_num + 1,
         "role": "responder",
@@ -214,12 +218,17 @@ def show_done():
     st.success("모든 라운드가 종료되었습니다. 참여해 주셔서 감사합니다!")
     st.write(f"총 참여 trial 수: {len(st.session_state.data)}")
     df = pd.DataFrame(st.session_state.data)
+    # 행동 특성 계산
     traits = compute_behavioral_traits(df)
     traits["user_id"] = st.session_state.user_id
     traits["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # Google Sheet 저장
     save_to_gsheet(traits)
+    # 출력
     st.subheader("행동 특성 분석 결과")
-    st.json(traits)
+    traits_df = pd.DataFrame([traits])  
+    st.dataframe(traits_df, use_container_width=True)
+
 
 # ----------- Main Renderer ------------
 if st.session_state.page == "intro":
