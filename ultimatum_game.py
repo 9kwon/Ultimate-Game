@@ -31,14 +31,16 @@ st.markdown("""
 def save_to_gsheet(data):
     try:
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(
-            json.loads(st.secrets["GSHEET_CREDENTIALS"]), scope
-        )
+        credentials_dict = json.loads(st.secrets["GSHEET_CREDENTIALS"])
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
         client = gspread.authorize(creds)
         sheet = client.open(st.secrets["GSHEET_NAME"]).sheet1
         sheet.append_row(list(data.values()))
+    
     except Exception as e:
-        st.warning("⚠️ Google Sheet에 저장하지 못했습니다. secrets 설정을 확인하세요.")
+        st.warning("저장 실패")
+        #st.error(str(e))  # 👉 디버깅을 위한 에러 메시지 출력 (배포 시에는 생략 가능)
+
 
 # ----------- Game Initialization ------------
 if "initialized" not in st.session_state:
