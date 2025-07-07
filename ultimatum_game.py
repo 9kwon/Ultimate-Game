@@ -24,10 +24,9 @@ st.markdown("""
       font-size: 1.3em;
       padding: 1em;
     }
-    img {
-      max-width: 30%;
-      height: auto;
-    }
+    <div style="text-align: right;">
+    <img src="2000.png" width="300">
+    </div>
     </style>
 """, unsafe_allow_html=True)
 
@@ -74,7 +73,7 @@ if "initialized" not in st.session_state:
 # ----------- Pages ------------
 def show_intro():
     st.title("10만원 나눠 갖기")
-    st.image("2000.png", width=200) #, use_container_width=True)
+   # st.image("2000.png", width=300) #, use_container_width=True)
     st.markdown("""
     당신은 협상 거래 테이블에 앉아 총 30회의 협상을 진행하게 됩니다.
     
