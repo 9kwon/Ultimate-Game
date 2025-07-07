@@ -189,7 +189,7 @@ def show_result():
     st.write("### 거래 결과")
     st.markdown(f"""
     <div id='result'>{st.session_state.result}</div>
-    <br><br><br>
+    <br><br>
     """, unsafe_allow_html=True)
 
 def show_emotion():
