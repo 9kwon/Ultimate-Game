@@ -86,8 +86,7 @@ def show_intro():
     응답자가 되어 수락할지 거절할지 선택할 수 있습니다.
     
     **당신은 어떤 선택을 하시겠습니까?**
-    
-    &nbsp;  
+ 
     &nbsp;
     """, unsafe_allow_html=True)
     
