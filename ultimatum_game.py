@@ -191,7 +191,11 @@ def show_result():
 
 def show_emotion():
     show_result()
-    st.write("#### &nbsp;&nbsp;&nbsp;지금 기분은 어땠나요?")
+    st.markdown(f"""
+    <div id='result'>{st.session_state.result}</div>
+    <br><br><br>
+    """, unsafe_allow_html=True)
+    st.write("#### 지금 기분은 어떤가요?")
     emotions = ["😊 기쁨", "😌 다행스러움", "😐 무감정/잘 모르겠음", "☹️ 실망", "😠 화남"]
     for emo in emotions:
         if st.button(emo):
