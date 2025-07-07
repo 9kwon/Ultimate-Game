@@ -39,7 +39,6 @@ def save_to_gsheet(data):
     
     except Exception as e:
         st.warning("저장 실패")
-        #st.error(str(e))  # 👉 디버깅을 위한 에러 메시지 출력 (배포 시에는 생략 가능)
 
 
 # ----------- Game Initialization ------------
@@ -86,6 +85,7 @@ def show_intro():
     응답자가 되어 수락할지 거절할지 선택할 수 있습니다.
     
     **당신은 어떤 선택을 하시겠습니까?**
+    
     <br><br>
     """)
     st.session_state.consent_given = st.checkbox("연구 참여에 동의합니다.")
@@ -101,19 +101,22 @@ def show_intro():
         else:
             st.session_state.user_id = f"{name}_{phone}"
             st.session_state.page = "game"
-            st.experimental_rerun()
+            st.rerun()
 
 def show_proposer():
-    round = st.session_state.rounds[st.session_state.trial_num]
+    rounds = st.session_state.rounds[st.session_state.trial_num]
     st.write(f"### 제안자 역할 - 라운드 {st.session_state.trial_num + 1}/30")
     offer = st.slider("상대에게 제안할 금액 (원)", 0, 100000, 50000, 5000)
     if st.button("제안하기"):
-        ai = round["ai"]
+        ai = rounds["ai"]
         accepted = False
         if ai == "무난이":
             accepted = offer >= 20000
         elif ai == "엄격이":
             accepted = offer >= 50000
+        else:
+            accepted = False
+            
         user_reward = 100000 - offer if accepted else 0
         ai_reward = offer if accepted else 0
         st.session_state.page = "emotion"
@@ -129,15 +132,15 @@ def show_proposer():
             "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "user_id": st.session_state.user_id
         }
-        st.experimental_rerun()
+        st.rerun()
 
 def show_responder():
-    round = st.session_state.rounds[st.session_state.trial_num]
+    rounds = st.session_state.rounds[st.session_state.trial_num]
     st.write(f"### 응답자 역할 - 라운드 {st.session_state.trial_num + 1}/30")
-    if round["frame"] == "direct":
-        st.markdown(f"상대가 당신에게 **{round['offer']:,}원**을 제안했습니다.")
+    if rounds["frame"] == "direct":
+        st.markdown(f"상대가 당신에게 **{rounds['offer']:,}원**을 제안했습니다.")
     else:
-        proposer_share = 100000 - round["offer"]
+        proposer_share = 100000 - rounds["offer"]
         st.markdown(f"상대가 자신이 **{proposer_share:,}원**을 갖겠다고 제안했습니다.")
     col1, col2 = st.columns(2)
     with col1:
@@ -147,22 +150,22 @@ def show_responder():
         if st.button("거절"):
             accepted = False
     if "accepted" in locals():
-        user_reward = round["offer"] if accepted else 0
-        proposer_reward = 100000 - round["offer"] if accepted else 0
+        user_reward = rounds["offer"] if accepted else 0
+        proposer_reward = 100000 - rounds["offer"] if accepted else 0
         st.session_state.page = "emotion"
         st.session_state.last_result = {
             "trial": st.session_state.trial_num + 1,
             "role": "responder",
-            "offer": round["offer"],
+            "offer": rounds["offer"],
             "accepted": accepted,
             "user_reward": user_reward,
             "proposer_reward": proposer_reward,
-            "frame": round["frame"],
+            "frame": rounds["frame"],
             "rt": round(time.time() - st.session_state.start_time, 2),
             "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "user_id": st.session_state.user_id
         }
-        st.experimental_rerun()
+        st.rerun()
 
 def show_emotion():
     st.write("#### 지금 기분은 어땠나요?")
@@ -179,7 +182,7 @@ def show_emotion():
             else:
                 st.session_state.page = "game"
                 st.session_state.start_time = time.time()
-            st.experimental_rerun()
+            st.rerun()
 
 def show_done():
     st.success("모든 라운드가 종료되었습니다. 참여해 주셔서 감사합니다!")
