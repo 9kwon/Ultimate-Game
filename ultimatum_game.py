@@ -81,27 +81,27 @@ def show_intro():
     with col1:
         st.markdown("""
         당신은 협상 거래 테이블에 앉아 총 30회의 협상을 진행하게 됩니다.
-        
+
         매 거래마다 당신은 처음 보는 사람과 10만원을 나눠 가져야 하는데, 조건이 있습니다.  
         한 사람은 비율을 제시하고, 다른 사람이 반드시 수락해야 계약이 성사된다는 것입니다.
-        
+
         즉, 상대가 당신에게 10만원 중 8만원을 갖고 2만원을 제안했을 때,  
         당신이 수락하면 계약은 성사되어 당신은 2만원, 상대는 8만원을 가집니다.  
         하지만 2만원이 너무 적다고 생각하여 거절한다면, 둘 다 돈을 받지 못합니다.
-        
+
         당신은 제안자가 되어 비율이나 금액을 제시할 수도 있고,  
         응답자가 되어 수락할지 거절할지 선택할 수 있습니다.
-        
+
         **당신은 어떤 선택을 하시겠습니까?**
         &nbsp;
         """, unsafe_allow_html=True)
-        
+
     st.session_state.consent_given = st.checkbox("연구 참여에 동의합니다.")
 
     name = st.text_input("이름을 입력하세요")
     phone = st.text_input("전화번호 뒤 4자리를 입력하세요", max_chars=4)
 
-    if st.button("게임 시작"):
+    if st.button("시작하기"):
         if not st.session_state.consent_given:
             st.warning("계속하려면 동의가 필요합니다.")
         elif not name or not phone:
@@ -113,20 +113,19 @@ def show_intro():
 
 def show_proposer():
     rounds = st.session_state.rounds[st.session_state.trial_num]
-    st.write(f"### 당신은 상대에게 얼마를 제안하시겠습니까?  ({st.session_state.trial_num + 1}/30)")
-    offer = st.slider("상대에게 제안할 금액 (원)", 0, 100000, 50000, 5000)
-    if st.button("제안하기"):
+    st.write(f"### 당신은 상대에게 얼마를 제시하시겠습니까?  ({st.session_state.trial_num + 1}/30)")
+    offer = st.slider("상대에게 제시할 금액 (원)", 0, 100000, 50000, 5000)
+    if st.button("제시하기"):
         ai = rounds["ai"]
-        accepted = False
-        if ai == "무난이":
-            accepted = offer >= 20000
-        elif ai == "엄격이":
-            accepted = offer >= 50000
-        else:
-            accepted = False
-        
+        accepted = offer >= 20000 if ai == "무난이" else offer >= 50000
+
         user_reward = 100000 - offer if accepted else 0
         ai_reward = offer if accepted else 0
+        st.session_state.result = (
+            f"거래가 성사되었습니다. 당신: {user_reward:,}원 / 상대: {ai_reward:,}원"
+            if accepted else
+            "거래가 결렬되었습니다. 둘 다 돈을 받지 못합니다."
+        )
         st.session_state.page = "emotion"
         st.session_state.last_result = {
             "trial": st.session_state.trial_num + 1,
@@ -186,7 +185,12 @@ def show_responder():
         if st.button("거절"):
             handle_responder_response(rounds, "reject")
 
+def show_result():
+    st.write("### 거래 결과")
+    st.markdown(f"<div id='result'>{st.session_state.result}</div>", unsafe_allow_html=True)
+
 def show_emotion():
+    show_result()
     st.write("#### 지금 기분은 어땠나요?")
     emotions = ["😊 기쁨", "😌 다행스러움", "😐 무감정/잘 모르겠음", "☹️ 실망", "😠 화남"]
     for emo in emotions:
@@ -206,7 +210,6 @@ def show_emotion():
 def show_done():
     st.success("모든 라운드가 종료되었습니다. 참여해 주셔서 감사합니다!")
     st.write(f"총 참여 trial 수: {len(st.session_state.data)}")
-  
 
 # ----------- Main Renderer ------------
 if st.session_state.page == "intro":
