@@ -69,7 +69,7 @@ if "initialized" not in st.session_state:
 
 # ----------- Pages ------------
 def show_intro():
-    st.title("10만원 나눠 갖기 게임")
+    st.title("10만원 나눠 갖기")
     st.image("2000.png", width = 150, use_container_width=True)
     st.markdown("""
     
@@ -96,7 +96,7 @@ def show_intro():
     name = st.text_input("이름을 입력하세요")
     phone = st.text_input("전화번호 뒤 4자리를 입력하세요", max_chars=4)
 
-    if st.button("게임 시작"):
+    if st.button("시작하기"):
         if not st.session_state.consent_given:
             st.warning("계속하려면 동의가 필요합니다.")
         elif not name or not phone:
