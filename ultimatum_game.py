@@ -220,23 +220,25 @@ def show_done():
 
     df = pd.DataFrame(st.session_state.data)
     traits = compute_behavioral_traits(df)
-
-    # 영문 컬럼 유지한 상태로 저장
     traits["user_id"] = st.session_state.user_id
     traits["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     save_to_gsheet(traits)
 
+    traits_df = pd.DataFrame([traits])
+    # explore, exploit 제거
+    traits_df = traits_df.drop(columns=["explore", "exploit"], errors="ignore")
+
     # 사용자에게 보여줄 때는 한글로
     col_name_map = {
-        "risk_averse_ratio": "위험 회피 경향",
+        "risk_aversion": "위험 회피 경향",
         "loss_aversion": "손실 회피 경향",
-        "punishment_rate": "처벌 성향",
+        "punishment": "처벌 성향",
         "ignore_benefit": "이득 무관심",
         "user_id": "참여자 ID",
         "date": "날짜 및 시간"
     }
 
-    translated = [{"항목": col_name_map.get(k, k), "값(0~1)": v} for k, v in traits.items()]
+    translated = [{"항목": col_name_map.get(k, k), "값(0~1)": round(v, 4)} for k, v in traits.items()]
     traits_df = pd.DataFrame(translated)
 
     st.subheader("행동 특성 분석 결과")
