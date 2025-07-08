@@ -226,7 +226,7 @@ def show_done():
     traits["type"] = "traits"
     save_to_gsheet(traits)
 
-       traits_display = traits.copy()
+    traits_display = traits.copy()
     traits_display.pop("explore", None)
     traits_display.pop("exploit", None)
 
