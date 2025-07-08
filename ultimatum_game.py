@@ -226,31 +226,39 @@ def show_done():
     traits["type"] = "traits"
     save_to_gsheet(traits)
 
+       traits_display = traits.copy()
+    traits_display.pop("explore", None)
+    traits_display.pop("exploit", None)
+
+    # 컬럼명 번역
     col_name_map = {
         "risk_averse_ratio": "위험 회피 경향",
         "loss_aversion": "손실 회피 경향",
         "punishment_rate": "처벌 성향",
         "ignore_benefit": "이익 무관심",
-        "explore": "탐색 성향",
-        "exploit": "이용 성향",
         "user_id": "참여자 ID",
-        "date": "날짜 및 시간"
+        "date": "날짜 및 시간",
+        "type": "type"
     }
-    translated = [{"항목": col_name_map.get(k, k), "값(0~1)": v} for k, v in traits.items()]
+
+    translated = [{"항목": col_name_map.get(k, k), "값(0~1)": v} for k, v in traits_display.items()]
     traits_df = pd.DataFrame(translated)
 
     st.subheader("행동 특성 분석 결과")
     st.dataframe(traits_df, use_container_width=True)
-
+    
+    # 안내문
     st.markdown("""
-    #### 항목의 의미 
+    ---
+    ### 항목의 의미
+    
     본 실험은 간단한 게임을 기반으로 참여자의 선택 경향을 파악하는 것으로,  
     **정식 심리 진단이나 성격 평가가 아닙니다.**  
-    결과는 특정 상황에서의 행동 경향을 가볍게 참고하는 용도로만 사용해 주세요.  
+    결과는 특정 상황에서의 행동 경향을 가볍게 참고하는 용도로만 사용해 주세요.
     
     - **위험 회피 경향**  
     낮은 보상이라도 **확실한 선택을 선호**하는 경향입니다.  
-    예: "이 정도면 확실하니까 받아두자"와 같은 판단
+    예: "이 정도면 확실하니까 받아두자"
     
     - **손실 회피 경향**  
     손해를 보는 상황에 **특히 민감하게 반응**하는 성향입니다.  
@@ -258,13 +266,15 @@ def show_done():
     
     - **처벌 성향**  
     불공정하다고 느낄 때, **자신의 손해를 감수**하고서라도 상대를 **처벌하려는 경향**입니다.  
-    예: "이건 너무 불공정하니 거절하겠다"
+    예: "이건 너무 불공평하니 거절하겠다"
     
     - **이익 무관심**  
     자신의 이익이 작아도 **무덤덤하거나 덜 민감한** 경향입니다.  
-    예: "그냥 이 정도도 상관없다" 같은 반응
+    예: "그냥 이 정도도 상관없다"
+    
+    ---
+    ⚠️ 이 결과는 진단 도구가 아니며, 자기 자신을 판단하거나 비교하는 근거로 삼지 마세요.
     """)
-    #st.json(traits)
 
 # ----------- Main Renderer ------------
 if st.session_state.page == "intro":
