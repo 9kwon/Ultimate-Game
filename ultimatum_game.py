@@ -173,7 +173,7 @@ def handle_responder_response(trial_data, choice):
         "user_id": st.session_state.user_id
     }
     st.session_state.page = "emotion"
-    st.session_state.start_time = time.time()
+   # st.session_state.start_time = time.time()
     st.rerun()
 
 def show_responder():
@@ -204,7 +204,7 @@ def show_emotion():
         if st.button(emo):
             result = st.session_state.last_result
             result["emotion"] = emo
-            result["type"] = "trial"  
+        #    result["type"] = "trial"  
             st.session_state.data.append(result)
             save_to_gsheet(result)   
             st.session_state.trial_num += 1
@@ -212,7 +212,7 @@ def show_emotion():
                 st.session_state.page = "done"
             else:
                 st.session_state.page = "game"
-                st.session_state.start_time = time.time()
+                st.session_state.start_time = None
             st.rerun()
 
 
@@ -277,11 +277,16 @@ def show_done():
     """)
 
 # ----------- Main Renderer ------------
+if 'page' not in st.session_state:
+    st.session_state.page = 'intro'
+
 if st.session_state.page == "intro":
     show_intro()
 elif st.session_state.page == "game":
+    if 'start_time' not in st.session_state or st.session_state.start_time is None:
+        st.session_state.start_time = time.time()
+        
     trial = st.session_state.rounds[st.session_state.trial_num]
-    st.session_state.start_time = time.time()
     if trial["role"] == "proposer":
         show_proposer()
     else:
